@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Codenames Duet</title>
+    <style>
+      h1 {
+        text-align: center;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      .buttons{ width: 100%; text-align: center; }
+
+      .buttons > * {
+        display: inline-block;
+      }
+      
+      .buttons > button {
+        width: 150px;
+        padding: .375rem .75rem;
+        margin: .375rem .75rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        border-radius: .25rem;
+        text-align: center;
+      }
+        
+      .buttons input {
+        padding: .375rem .75rem;
+        margin: .375rem .75rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        border-radius: .25rem;
+        text-align: center;
+      }
+
+      .left { float: left }
+      .right { float: right; }
+      .hidden { visibility: hidden; }
+      
+      table > tbody > tr > td {
+        border: 2px solid black;
+      }
+
+      table {
+        table-layout: fixed;
+        border-collapse: collapse;
+        width: 100%;
+      }
+
+      .container {
+        margin-left: auto;
+        margin-right: auto;
+        width: 100%;
+        max-width: 600px;
+      }
+        
+      table > tbody > tr > td {
+        padding: 10px;
+      }
+
+      .agent {
+        background: #7bc043
+      }
+
+      .bystander {
+        background: #ffefd7
+      }
+      
+      .assassin {
+        background: #565656
+      }
+      
+      @media print{
+        .noprint{
+          display:none;
+        }
+      }
+    </style>
+    <meta name="viewport" content="width=640"/>
+  </head>
+  <body style="width: 100%">
+    <h1 class="page-header text-center">Codenames Duet</h1>
+
+    <!-- <div class="container"> -->
+    <!--   <table> -->
+    <!--     <tr> -->
+    <!--       <td class="agent"></td> -->
+    <!--       <td class="assassin"></td> -->
+    <!--     </tr> -->
+    <!--     <tr> -->
+    <!--       <td class="agent"></td> -->
+    <!--       <td class="assassin"></td> -->
+    <!--     </tr> -->
+    <!--     <tr> -->
+    <!--       <td class="bystander"></td> -->
+    <!--       <td class="agent"></td> -->
+    <!--     </tr> -->
+    <!--   </table> -->
+    <!--   <div class="buttons"> -->
+    <!--     <button class="left">Red</button> -->
+    <!--     <div class="mid"> -->
+    <!--       <label for="seed">Seed:</label> -->
+    <!--       <input id="seed" type="text" maxlength="4" size="4" -->
+    <!--              style="width: 4ex" inputmode="numeric" pattern="[0-9]{4}"></input> -->
+    <!--     </div> -->
+    <!--     <button class="right hidden">Blue</button> -->
+    <!--   </div> -->
+    <!-- </div> -->
+    
+  </body>
+  <script language="javascript" src="codenames-duet.js" defer></script>
+</html>

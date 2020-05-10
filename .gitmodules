@@ -1,0 +1,3 @@
+[submodule "import/idrisjs"]
+	path = import/idrisjs
+	url = https://github.com/rbarreiro/idrisjs

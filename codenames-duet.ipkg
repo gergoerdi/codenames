@@ -1,0 +1,9 @@
+package codenames-duet
+
+sourcedir = src
+
+pkgs = contrib, js, effects
+
+executable = "codenames-duet.js"
+main = Codenames.Duet
+opts = "--codegen javascript"
