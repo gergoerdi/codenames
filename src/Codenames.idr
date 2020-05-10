@@ -1,5 +1,7 @@
 module Codenames
 
+import Control.ST
+
 %access public export
 %default total
 
@@ -14,3 +16,6 @@ data Field : Type where
     Bystander : Field
     Assassin : Field
     Agent : Maybe Side -> Field
+
+Shuffle : (Type -> Type) -> Type -> Type
+Shuffle m a = (seed : Var) -> ST m a [seed ::: State Integer]
