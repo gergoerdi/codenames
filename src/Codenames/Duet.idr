@@ -7,19 +7,19 @@ import Data.Vect
 import Data.Fin
 import Js.Dom
 
-import Effects
-import Effect.Random
-import Effect.Random.Shuffle
+import Control.ST
+import Control.ST.Random
+import Control.ST.Random.Shuffle
 
-generate : Shuffle (Player -> Fields)
-generate = do
-    (shared, nonshared) <- choose 3 indices
+total generate : (Monad m) => Shuffle m (Player -> Fields)
+generate rnd = do
+    (shared, nonshared) <- choose rnd 3 indices
 
-    (agent1, nonagent1) <- choose 6 nonshared
-    other1 <- shuffle nonagent1
+    (agent1, nonagent1) <- choose rnd 6 nonshared
+    other1 <- shuffle rnd nonagent1
 
-    (nonagent2, agent2) <- choose (25 - (3 + 6)) nonshared
-    other2 <- shuffle nonagent2
+    (nonagent2, agent2) <- choose rnd (25 - (3 + 6)) nonshared
+    other2 <- shuffle rnd nonagent2
 
     pure $ \player => case player of
       Player1 => backpermute template $ shared ++ agent1 ++ other1
