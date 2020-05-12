@@ -2,7 +2,7 @@ package codenames-duet
 
 sourcedir = src
 
-pkgs = contrib, js, effects
+pkgs = contrib, js
 
 executable = "codenames-duet.js"
 main = Codenames.Duet

@@ -5,12 +5,8 @@ import Codenames.Utils
 import Js.Dom
 
 import Control.ST
+import Control.ST.Random
 import Control.ST.ImplicitCall
-import Control.ST.LiftEffect
-
-import Effects
-import Effect.Random
-import Effect.Random.Shuffle
 
 public export Width : Nat
 Width = 5
@@ -85,13 +81,13 @@ render () ps = div [cssClass "container"]
     numInput : List (InputAttribute a) -> Html a
     numInput attrs = input (attrs ++ numAttrs)
 
-exec : Shuffle (Player -> Fields) -> (dom : Var) -> (seed : Var) -> Event -> ST ASync () [seed ::: State Integer, dom ::: Gui {m = ASync}]
-exec shuffle dom seed ev = case ev of
-  NewSeed n => do
-    write seed n
-    fields <- call $ liftEff seed shuffle
+exec : Shuffle ASync (Player -> Fields) -> (dom : Var) -> (rnd : Var) -> Event -> ST ASync () [rnd ::: Random, dom ::: Gui {m = ASync}]
+exec shuffle dom rnd ev = case ev of
+  NewSeed seed => do
+    write rnd seed
+    fields <- shuffle rnd
     ps <- domGet dom
-    let ps' = record{ fields = fields, seed = n} ps
+    let ps' = record{ fields = fields, seed = seed} ps
     domPut dom ps'
   SwitchPlayer p => do
     ps <- domGet dom
@@ -99,30 +95,30 @@ exec shuffle dom seed ev = case ev of
     domPut dom ps'
 
 pageLoop
-    : Shuffle (Player -> Fields)
+    : Shuffle ASync (Player -> Fields)
     -> (dom : Var)
-    -> (seed : Var)
-    -> ST ASync () [seed ::: State Integer, dom ::: Gui {m = ASync}]
-pageLoop shuffle dom seed = do
+    -> (rnd : Var)
+    -> ST ASync () [rnd ::: Random, dom ::: Gui {m = ASync}]
+pageLoop shuffle dom rnd = do
     ev <- getInput dom
-    exec shuffle dom seed ev
-    pageLoop shuffle dom seed
+    exec shuffle dom rnd ev
+    pageLoop shuffle dom rnd
 
-page : Shuffle (Player -> Fields) -> ST ASync () []
+page : Shuffle ASync (Player -> Fields) -> ST ASync () []
 page shuffle = do
     seedNum <- do
         now <- lift . liftJS_IO $ jscall "new Date().getTime()" (JS_IO Int)
         pure $ cast now `mod` 10000
-    seed <- new seedNum
+    rnd <- new seedNum
     dom <- do
-        fields <- call $ liftEff seed $ shuffle
+        fields <- shuffle rnd
         let side = Player1
         initBody [] render () (MkPageState fields side seedNum)
 
-    pageLoop shuffle dom seed
+    pageLoop shuffle dom rnd
 
     clearDom dom
-    delete seed
+    delete rnd
 
-export runPage : Shuffle (Player -> Fields) -> JS_IO ()
+export runPage : Shuffle ASync (Player -> Fields) -> JS_IO ()
 runPage = setASync_ . run . page
