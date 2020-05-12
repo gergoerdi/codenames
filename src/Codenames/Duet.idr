@@ -7,27 +7,23 @@ import Data.Vect
 import Data.Fin
 import Js.Dom
 
-import Control.ST
-import Control.ST.ImplicitCall
 import Effects
 import Effect.Random
 import Effect.Random.Shuffle
-import Control.ST.LiftEffect
 
-generate : (Monad m) => Shuffle m (Player -> Fields)
-generate seed = do
-    idxs <- call $ liftEff seed $ shuffle indices
+generate : Shuffle (Player -> Fields)
+generate = do
+    (shared, nonshared) <- choose 3 indices
 
-    let (shared, nonshared) = splitAt 3 idxs
-    let (red, nonred) = splitAt 6 nonshared
-    let (nonblue, blue) = splitAt (25 - (3 + 6)) nonshared
+    (agent1, nonagent1) <- choose 6 nonshared
+    other1 <- shuffle nonagent1
 
-    red' <- call $ liftEff seed $ shuffle nonred
-    blue' <- call $ liftEff seed $ shuffle nonblue
+    (nonagent2, agent2) <- choose (25 - (3 + 6)) nonshared
+    other2 <- shuffle nonagent2
 
     pure $ \player => case player of
-      Player1 => backpermute template $ shared ++ red ++ red'
-      Player2 => rotate $ backpermute template $ shared ++ blue ++ blue'
+      Player1 => backpermute template $ shared ++ agent1 ++ other1
+      Player2 => rotate $ backpermute template $ shared ++ agent2 ++ other2
   where
     indices : Vect (Width * Height) (Fin 25)
     indices = fromList [0..24]

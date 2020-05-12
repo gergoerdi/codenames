@@ -11,3 +11,6 @@ shuffle {n = S n} xs@(x :: xs') = do
     let x' = index k xs
     let (_ :: xs') = replaceAt k x xs
     (x' ::) <$> shuffle xs'
+
+export choose : (n : Nat) -> Vect (n + m) a -> Eff (Vect n a, Vect m a) [RND]
+choose n xs = Data.Vect.splitAt n <$> shuffle xs

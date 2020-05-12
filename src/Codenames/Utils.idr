@@ -1,13 +1,13 @@
 module Codenames.Utils
 
 import Data.Vect
-import Control.ST
-import Control.ST.ImplicitCall
+import Effects
+import Effect.Random
 
 %access public export
 
-Shuffle : (Type -> Type) -> Type -> Type
-Shuffle m a = (seed : Var) -> ST m a [seed ::: State Integer]
+Shuffle : Type -> Type
+Shuffle a = Eff a [RND]
 
 backpermute : Vect n a -> Vect n (Fin n) -> Vect n a
 backpermute xs = map $ \i => index i xs

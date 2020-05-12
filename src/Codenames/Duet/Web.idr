@@ -3,8 +3,14 @@ module Codenames.Duet.Web
 import Codenames.Utils
 
 import Js.Dom
+
 import Control.ST
 import Control.ST.ImplicitCall
+import Control.ST.LiftEffect
+
+import Effects
+import Effect.Random
+import Effect.Random.Shuffle
 
 public export Width : Nat
 Width = 5
@@ -79,11 +85,11 @@ render () ps = div [cssClass "container"]
     numInput : List (InputAttribute a) -> Html a
     numInput attrs = input (attrs ++ numAttrs)
 
-exec : Shuffle ASync (Player -> Fields) -> (dom : Var) -> (seed : Var) -> Event -> ST ASync () [seed ::: State Integer, dom ::: Gui {m = ASync}]
+exec : Shuffle (Player -> Fields) -> (dom : Var) -> (seed : Var) -> Event -> ST ASync () [seed ::: State Integer, dom ::: Gui {m = ASync}]
 exec shuffle dom seed ev = case ev of
   NewSeed n => do
     write seed n
-    fields <- shuffle seed
+    fields <- call $ liftEff seed shuffle
     ps <- domGet dom
     let ps' = record{ fields = fields, seed = n} ps
     domPut dom ps'
@@ -93,7 +99,7 @@ exec shuffle dom seed ev = case ev of
     domPut dom ps'
 
 pageLoop
-    : Shuffle ASync (Player -> Fields)
+    : Shuffle (Player -> Fields)
     -> (dom : Var)
     -> (seed : Var)
     -> ST ASync () [seed ::: State Integer, dom ::: Gui {m = ASync}]
@@ -102,14 +108,14 @@ pageLoop shuffle dom seed = do
     exec shuffle dom seed ev
     pageLoop shuffle dom seed
 
-page : Shuffle ASync (Player -> Fields) -> ST ASync () []
+page : Shuffle (Player -> Fields) -> ST ASync () []
 page shuffle = do
     seedNum <- do
         now <- lift . liftJS_IO $ jscall "new Date().getTime()" (JS_IO Int)
         pure $ cast now `mod` 10000
     seed <- new seedNum
     dom <- do
-        fields <- shuffle seed
+        fields <- call $ liftEff seed $ shuffle
         let side = Player1
         initBody [] render () (MkPageState fields side seedNum)
 
@@ -118,5 +124,5 @@ page shuffle = do
     clearDom dom
     delete seed
 
-export runPage : Shuffle ASync (Player -> Fields) -> JS_IO ()
+export runPage : Shuffle (Player -> Fields) -> JS_IO ()
 runPage = setASync_ . run . page
