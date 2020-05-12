@@ -2,11 +2,10 @@ module Codenames.Duet.Web
 
 import Codenames.Utils
 
-import Js.Dom
-
 import Control.ST
-import Control.ST.Random
 import Control.ST.ImplicitCall
+import Control.ST.Random
+import Js.Dom
 
 public export Width : Nat
 Width = 5
@@ -53,16 +52,20 @@ render : () -> PageState -> Html Event
 render () ps = div [cssClass "container"]
   [ table $ grid ps
   , div [cssClass "buttons"]
-    [ button (playerBtn Player1 [cssClass "left", onclick $ SwitchPlayer Player2 ]) "Side A"
+    [ button (playerBtn Player1 [cssClass "left", onclick $ SwitchPlayer Player2 ]) "Player 1"
     , div [cssClass "mid"]
       [ node0 "label" [ stringAttribute "for" "seed"] [text "Seed:"]
       , numInput
           [ stringAttribute "id" "seed"
           , propertyAttribute "style" "width: 5ex"
           , stringAttribute "value" $ show $ seed ps
+          , onchange (NewSeed . cast . substr 0 4)
+          -- TODO: manage selection
+          -- , eventListenerAttribute "onfocus" (\this => ?select)
+          -- , eventListenerAttribute "onmouseup" (\this => pure False)
           ]
       ]
-    , button (playerBtn Player2 [cssClass "right", onclick $ SwitchPlayer Player1 ]) "Side B"
+    , button (playerBtn Player2 [cssClass "right", onclick $ SwitchPlayer Player1 ]) "Player 2"
     ]
   ]
   where
@@ -87,7 +90,7 @@ exec shuffle dom rnd ev = case ev of
     write rnd seed
     fields <- shuffle rnd
     ps <- domGet dom
-    let ps' = record{ fields = fields, seed = seed} ps
+    let ps' = record{ fields = fields, seed = seed, player = Player2} ps
     domPut dom ps'
   SwitchPlayer p => do
     ps <- domGet dom
