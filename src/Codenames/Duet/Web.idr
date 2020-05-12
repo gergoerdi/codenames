@@ -1,14 +1,10 @@
-module Codenames.Web
+module Codenames.Duet.Web
 
-import Codenames
+import Codenames.Utils
 
 import Js.Dom
 import Control.ST
 import Control.ST.ImplicitCall
-import Effects
-import Effect.Random
-import Effect.Random.Shuffle
-import Control.ST.LiftEffect
 
 public export Width : Nat
 Width = 5
@@ -17,14 +13,22 @@ public export Height : Nat
 Height = 5
 
 public export Fields : Type
-Fields = Vect (Width * Height) Field
+Fields = Vect (Width * Height) String
 
-data Event = NewSeed Integer | SwitchSide Side
+public export data Player = Player1 | Player2
+
+Eq Player where
+  Player1 == Player1 = True
+  Player2 == Player2 = True
+  _ == _ = False
+
+data Event = NewSeed Integer | SwitchPlayer Player
 
 record PageState where
     constructor MkPageState
-    fields : Side -> Fields
-    side : Side
+    fields : Player -> Fields
+    player : Player
+    seed : Integer
 
 export node0 : String -> List (HtmlAttribute ev) -> List (Html ev) -> Html ev
 node0 = node
@@ -35,19 +39,10 @@ table xs = node0 "table" [] [node0 "tbody" [] $ toList $ map row xs]
     row : Vect m (Html ev) -> Html ev
     row = node0 "tr" [stringAttribute "style" "height: 12ex"] . toList
 
-export unconcat : (n : Nat) -> (m : Nat) -> Vect (n * m) a -> Vect n (Vect m a)
-unconcat Z _ [] = []
-unconcat (S n) m xs = let (ys, yss) = splitAt m xs in ys :: unconcat n m yss
-
 grid : PageState -> Vect Height (Vect Width (Html ev))
-grid (MkPageState fields side) = unconcat Height Width $ map square (fields side)
+grid (MkPageState fields side _) = unconcat Height Width $ map square (fields side)
   where
-    square field = node0 "td" [cssClass cls] []
-      where
-        cls = case field of
-            Bystander => "bystander"
-            Assassin => "assassin"
-            Agent side' => if maybe True (side ==) side' then "agent" else "bystander"
+    square field = node0 "td" [cssClass field] []
 
 Gui : (Dom m) => Type
 Gui {m} = DomRef {m} () (const PageState) (const Event) ()
@@ -56,20 +51,21 @@ render : () -> PageState -> Html Event
 render () ps = div [cssClass "container"]
   [ table $ grid ps
   , div [cssClass "buttons"]
-    [ button (sideBtn Red [cssClass "left", onclick $ SwitchSide Blue ]) "Red side"
+    [ button (playerBtn Player1 [cssClass "left", onclick $ SwitchPlayer Player2 ]) "Side A"
     , div [cssClass "mid"]
       [ node0 "label" [ stringAttribute "for" "seed"] [text "Seed:"]
       , numInput
           [ stringAttribute "id" "seed"
           , propertyAttribute "style" "width: 5ex"
+          , stringAttribute "value" $ show $ seed ps
           ]
       ]
-    , button (sideBtn Blue [cssClass "right", onclick $ SwitchSide Red ]) "Blue side"
+    , button (playerBtn Player2 [cssClass "right", onclick $ SwitchPlayer Player1 ]) "Side B"
     ]
   ]
   where
-    sideBtn : Side -> List (HtmlAttribute a) -> List (HtmlAttribute a)
-    sideBtn s attrs = if s == side ps then attrs else (cssClass "hidden")::attrs
+    playerBtn : Player -> List (HtmlAttribute a) -> List (HtmlAttribute a)
+    playerBtn s attrs = if s == player ps then attrs else (cssClass "hidden")::attrs
 
     numAttrs : List (InputAttribute a)
     numAttrs =
@@ -83,21 +79,21 @@ render () ps = div [cssClass "container"]
     numInput : List (InputAttribute a) -> Html a
     numInput attrs = input (attrs ++ numAttrs)
 
-exec : Shuffle ASync (Side -> Fields) -> (dom : Var) -> (seed : Var) -> Event -> ST ASync () [seed ::: State Integer, dom ::: Gui {m = ASync}]
+exec : Shuffle ASync (Player -> Fields) -> (dom : Var) -> (seed : Var) -> Event -> ST ASync () [seed ::: State Integer, dom ::: Gui {m = ASync}]
 exec shuffle dom seed ev = case ev of
   NewSeed n => do
     write seed n
     fields <- shuffle seed
     ps <- domGet dom
-    let ps' = record{ fields = fields} ps
+    let ps' = record{ fields = fields, seed = n} ps
     domPut dom ps'
-  SwitchSide s => do
+  SwitchPlayer p => do
     ps <- domGet dom
-    let ps' = record{ side = s} ps
+    let ps' = record{ player = p} ps
     domPut dom ps'
 
 pageLoop
-    : Shuffle ASync (Side -> Fields)
+    : Shuffle ASync (Player -> Fields)
     -> (dom : Var)
     -> (seed : Var)
     -> ST ASync () [seed ::: State Integer, dom ::: Gui {m = ASync}]
@@ -106,20 +102,21 @@ pageLoop shuffle dom seed = do
     exec shuffle dom seed ev
     pageLoop shuffle dom seed
 
-page : Shuffle ASync (Side -> Fields) -> ST ASync () []
+page : Shuffle ASync (Player -> Fields) -> ST ASync () []
 page shuffle = do
-    seed <- do
+    seedNum <- do
         now <- lift . liftJS_IO $ jscall "new Date().getTime()" (JS_IO Int)
-        new $ cast now
+        pure $ cast now `mod` 10000
+    seed <- new seedNum
     dom <- do
         fields <- shuffle seed
-        let side = Red -- TODO
-        initBody [] render () (MkPageState fields side)
+        let side = Player1
+        initBody [] render () (MkPageState fields side seedNum)
 
     pageLoop shuffle dom seed
 
     clearDom dom
     delete seed
 
-export runPage : Shuffle ASync (Side -> Fields) -> JS_IO ()
+export runPage : Shuffle ASync (Player -> Fields) -> JS_IO ()
 runPage = setASync_ . run . page
