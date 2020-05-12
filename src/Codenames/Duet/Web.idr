@@ -27,6 +27,19 @@ other : Player -> Player
 other Player1 = Player2
 other Player2 = Player1
 
+parseHash : String -> Maybe (Player, Integer)
+parseHash s = Nothing
+
+makeHash : Player -> Integer -> String
+makeHash Player1 seed = "P1/" ++ show seed
+makeHash Player2 seed = "P2/" ++ show seed
+
+getHash : ASync String
+getHash = liftJS_IO $ jscall "document.location.hash" _
+
+setHash : String -> ASync String
+setHash = liftJS_IO . jscall "document.location.hash = %0" _
+
 data Event = NewSeed Integer | SwitchPlayer Player
 
 record PageState where
@@ -95,6 +108,7 @@ exec shuffle dom rnd ev = case ev of
     fields <- shuffle rnd
     ps <- domGet dom
     let ps' = record{ fields = fields, seed = seed, player $= other } ps
+    lift $ setHash $ makeHash (player ps') seed
     domPut dom ps'
   SwitchPlayer p => do
     ps <- domGet dom
@@ -113,14 +127,19 @@ pageLoop shuffle dom rnd = do
 
 page : Shuffle ASync (Player -> Fields) -> ST ASync () []
 page shuffle = do
-    seedNum <- do
-        now <- lift . liftJS_IO $ jscall "new Date().getTime()" (JS_IO Int)
-        pure $ cast now `mod` 10000
-    rnd <- new seedNum
+    now <- lift . liftJS_IO $ jscall "new Date().getTime()" (JS_IO Int)
+    hash <- lift getHash
+
+    let init = fromMaybe (Player1, cast now `mod` 10000) $ parseHash hash
+    let player = fst init
+    let seed = snd init
+    lift $ setHash $ makeHash player seed
+
+    rnd <- new seed
     dom <- do
         fields <- shuffle rnd
-        let side = Player1
-        initBody [] render () (MkPageState fields side seedNum)
+        let ps = MkPageState fields player seed
+        initBody [] render () ps
 
     pageLoop shuffle dom rnd
 
