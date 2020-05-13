@@ -23,6 +23,10 @@ Eq Player where
   Player2 == Player2 = True
   _ == _ = False
 
+other : Player -> Player
+other Player1 = Player2
+other Player2 = Player1
+
 data Event = NewSeed Integer | SwitchPlayer Player
 
 record PageState where
@@ -90,7 +94,7 @@ exec shuffle dom rnd ev = case ev of
     write rnd seed
     fields <- shuffle rnd
     ps <- domGet dom
-    let ps' = record{ fields = fields, seed = seed, player = Player2} ps
+    let ps' = record{ fields = fields, seed = seed, player $= other } ps
     domPut dom ps'
   SwitchPlayer p => do
     ps <- domGet dom
