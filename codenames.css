@@ -1,4 +1,13 @@
+body {
+    font-family: sans-serif;
+    margin: 0; padding: 0;
+}
+
 h1 {
+  text-align: center;
+}
+
+h2 {
   text-align: center;
 }
 
@@ -7,6 +16,7 @@ button {
 }
 
 .buttons{ width: 100%; text-align: center; }
+
 
 .buttons > * {
   display: inline-block;
@@ -84,7 +94,20 @@ table > tbody > tr > td {
 }
 
 @media print{
+  .buttons{
+    display:none;
+  }
   .noprint{
     display:none;
   }
+
+  a {
+      text-decoration: none;
+      color: inherit;
+  }
+  
+  a::after{
+    content: " (" attr(href) ") ";
+  }
 }
+
