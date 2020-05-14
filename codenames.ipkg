@@ -1,0 +1,9 @@
+package codenames
+
+sourcedir = src
+
+pkgs = contrib, js
+
+executable = "codenames.js"
+main = Codenames.Versus
+opts = "--codegen javascript"

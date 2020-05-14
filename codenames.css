@@ -1,0 +1,90 @@
+h1 {
+  text-align: center;
+}
+
+button {
+  cursor: pointer;
+}
+
+.buttons{ width: 100%; text-align: center; }
+
+.buttons > * {
+  display: inline-block;
+}
+
+.buttons > button {
+  width: 150px;
+  padding: .375rem .75rem;
+  margin: .375rem .75rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  border-radius: .25rem;
+  text-align: center;
+}
+  
+.buttons input {
+  padding: .375rem .75rem;
+  margin: .375rem .75rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  border-radius: .25rem;
+  text-align: center;
+}
+
+.left { float: left }
+.right { float: right; }
+.hidden { visibility: hidden; }
+
+table > tbody > tr > td {
+  border: 2px solid black;
+}
+
+table {
+  table-layout: fixed;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.container {
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+  max-width: 600px;
+}
+
+.firstPlayer {
+    padding: 10px;
+    margin: 10px 0;
+    /* height: 10px; */
+    /* margin: 10px solid red; */
+}
+
+table > tbody > tr > td {
+  padding: 10px;
+}
+
+.agent {
+  background: #7bc043
+}
+
+.agentA {
+    background: #FF4136
+}
+
+.agentB {
+    background: #5DADE2
+}
+
+.bystander {
+  background: #ffefd7
+}
+
+.assassin {
+  background: #565656
+}
+
+@media print{
+  .noprint{
+    display:none;
+  }
+}

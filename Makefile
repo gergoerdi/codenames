@@ -1,10 +1,10 @@
 IDRIS		= idris
-IPKG		= codenames-duet.ipkg
+IPKGS		= codenames-duet.ipkg codenames.ipkg
 
 .phony: build clean
 
 build:
-	$(IDRIS) --build $(IPKG)
+	$(IDRIS) $(foreach IPKG, $(IPKGS), --build $(IPKG))
 
 clean:
-	$(IDRIS) --clean $(IPKG)
+	$(IDRIS) $(foreach IPKG, $(IPKGS), --clean $(IPKG))
