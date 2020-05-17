@@ -13,25 +13,32 @@ import Control.ST.Random.Shuffle
 
 total generate : (Monad m) => Shuffle m (Player -> Fields)
 generate rnd = do
-    (shared, nonshared) <- choose rnd 3 indices
+    (shared, nonshared) <- choose rnd 4 indices
 
-    (agent1, nonagent1) <- choose rnd 6 nonshared
-    other1 <- shuffle rnd nonagent1
+    (agents1, nonagents1) <- choose rnd 6 nonshared
+    (agents2, nonagents2) <- choose rnd 6 nonagents1
 
-    (nonagent2, agent2) <- choose rnd (25 - (3 + 6)) nonshared
-    other2 <- shuffle rnd nonagent2
+    (assassins1, others1) <- choose rnd 2 nonagents1
 
-    pure $ \player => case player of
-      Player1 => backpermute template $ shared ++ agent1 ++ other1
-      Player2 => rotate $ backpermute template $ shared ++ agent2 ++ other2
+    case partitionLen (`elem` assassins1) nonagents2 of
+      ((n, k) ** (prf, xs, ys)) => do
+        (assassins2, others2') <- choose rnd 2 (agents1 ++ xs)
+
+        let prf' = trans (sym $ plusAssociative 4 n k) $ cong {f = (+) 4} prf
+        let others2 = replace {P = \n => Vect n (Fin 25)} prf' (others2' ++ ys)
+
+        pure $ \player => case player of
+          Player1 => backpermute template $ shared ++ agents1 ++ assassins1 ++ others1
+          Player2 => rotate $ backpermute template $ shared ++ agents2 ++ assassins2 ++ others2
   where
-    indices : Vect (Width * Height) (Fin 25)
+    indices : Vect (Width * Height) (Fin (Width * Height))
     indices = fromList [0..24]
 
     template : Vect (Width * Height) String
     template =
-      replicate 12 "agent" ++
-      replicate 3 "assassin" ++
+      replicate 1 "assassin" ++
+      replicate 9 "agent" ++
+      replicate 2 "assassin" ++
       replicate _ "bystander"
 
 main : JS_IO ()
