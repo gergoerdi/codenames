@@ -46,15 +46,7 @@ render () ps@(MkPageState fields side _) = div [cssClass "container"]
     [ button (playerBtn Player1 [cssClass "left", onclick $ SwitchPlayer Player2 ]) "Player 1"
     , div [cssClass "mid"]
       [ node0 "label" [ stringAttribute "for" "seed"] [text "Seed:"]
-      , numInput
-          [ stringAttribute "id" "seed"
-          , propertyAttribute "style" "width: 5ex"
-          , stringAttribute "value" $ show $ seed ps
-          , onchange (NewSeed . cast . substr 0 4)
-          -- TODO: manage selection
-          -- , eventListenerAttribute "onfocus" (\this => ?select)
-          -- , eventListenerAttribute "onmouseup" (\this => pure False)
-          ]
+      , NewSeed <$> seedInput (seed ps)
       ]
     , button (playerBtn Player2 [cssClass "right", onclick $ SwitchPlayer Player1 ]) "Player 2"
     ]
@@ -62,18 +54,6 @@ render () ps@(MkPageState fields side _) = div [cssClass "container"]
   where
     playerBtn : Player -> List (HtmlAttribute a) -> List (HtmlAttribute a)
     playerBtn s attrs = if s == player ps then attrs else (cssClass "hidden")::attrs
-
-    numAttrs : List (InputAttribute a)
-    numAttrs =
-      [ propertyAttribute "type" "text"
-      , stringAttribute "maxlength" "4"
-      , stringAttribute "size" "4"
-      , stringAttribute "inputmode" "numeric"
-      , propertyAttribute "pattern" "[0-9]{4}"
-      ]
-
-    numInput : List (InputAttribute a) -> Html a
-    numInput attrs = input (attrs ++ numAttrs)
 
 exec : Shuffle ASync (Player -> Fields) -> (dom : Var) -> (rnd : Var) -> Event -> ST ASync () [rnd ::: Random, dom ::: Gui {m = ASync}]
 exec shuffle dom rnd ev = case ev of

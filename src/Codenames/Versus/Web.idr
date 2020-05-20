@@ -36,30 +36,10 @@ render () ps@(MkPageState fields firstPlayer _) = div [cssClass "container"]
   , div [cssClass "buttons"]
     [ div [cssClass "mid"]
       [ node0 "label" [ stringAttribute "for" "seed"] [text "Seed:"]
-      , numInput
-          [ stringAttribute "id" "seed"
-          , propertyAttribute "style" "width: 5ex"
-          , stringAttribute "value" $ show $ seed ps
-          , onchange (NewSeed . cast . substr 0 4)
-          -- TODO: manage selection
-          -- , eventListenerAttribute "onfocus" (\this => ?select)
-          -- , eventListenerAttribute "onmouseup" (\this => pure False)
-          ]
+      , NewSeed <$> seedInput (seed ps)
       ]
     ]
   ]
-  where
-    numAttrs : List (InputAttribute a)
-    numAttrs =
-      [ propertyAttribute "type" "text"
-      , stringAttribute "maxlength" "4"
-      , stringAttribute "size" "4"
-      , stringAttribute "inputmode" "numeric"
-      , propertyAttribute "pattern" "[0-9]{4}"
-      ]
-
-    numInput : List (InputAttribute a) -> Html a
-    numInput attrs = input (attrs ++ numAttrs)
 
 exec : Shuffle ASync (Fields, String) -> (dom : Var) -> (rnd : Var) -> Event -> ST ASync () [rnd ::: Random, dom ::: Gui {m = ASync}]
 exec shuffle dom rnd ev = case ev of
