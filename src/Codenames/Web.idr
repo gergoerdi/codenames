@@ -34,7 +34,7 @@ seedInput currentSeed = numInput
       , stringAttribute "maxlength" "4"
       , stringAttribute "size" "4"
       , stringAttribute "inputmode" "numeric"
-      , propertyAttribute "pattern" "[0-9]{4}"
+      , propertyAttribute "pattern" "[0-9]*"
       ]
 
     numInput : List (InputAttribute a) -> Html a
