@@ -20,16 +20,15 @@ generate rnd = do
 
     (assassins1, others1) <- choose rnd 2 nonagents1
 
-    case partitionLen (`elem` assassins1) nonagents2 of
-      ((n, k) ** (prf, xs, ys)) => do
-        (assassins2, others2') <- choose rnd 2 (agents1 ++ xs)
+    let ((n, k) ** (prf, xs, ys)) = partitionLen (`elem` assassins1) nonagents2
+    (assassins2, others2') <- choose rnd 2 (agents1 ++ xs)
 
-        let prf' = trans (sym $ plusAssociative 4 n k) $ cong {f = (+) 4} prf
-        let others2 = replace {P = \n => Vect n (Fin 25)} prf' (others2' ++ ys)
+    let prf' = trans (sym $ plusAssociative 4 n k) $ cong {f = (+) 4} prf
+    let others2 = replace {P = \n => Vect n (Fin 25)} prf' (others2' ++ ys)
 
-        pure $ \player => case player of
-          Player1 => backpermute template $ shared ++ agents1 ++ assassins1 ++ others1
-          Player2 => rotate $ backpermute template $ shared ++ agents2 ++ assassins2 ++ others2
+    pure $ \player => case player of
+      Player1 => backpermute template $ shared ++ agents1 ++ assassins1 ++ others1
+      Player2 => rotate $ backpermute template $ shared ++ agents2 ++ assassins2 ++ others2
   where
     indices : Vect (Width * Height) (Fin (Width * Height))
     indices = fromList [0..24]
