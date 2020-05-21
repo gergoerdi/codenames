@@ -20,7 +20,9 @@ generate rnd = do
 
     (assassins1, others1) <- choose rnd 2 nonagents1
 
-    let ((n, k) ** (prf, xs, ys)) = partitionLen (`elem` assassins1) nonagents2
+    let (((n ** xs), (k ** ys)) ** eq) = applyInspect {b = \_ => (DPair Nat (\p => Vect p (Fin 25)), DPair Nat (\q => Vect q (Fin 25)))} (partition (`elem` assassins1)) nonagents2
+    let prf : (n + k = 9) = replace eq $ partitionLen (`elem` assassins1) nonagents2
+
     (assassins2, others2') <- choose rnd 2 (agents1 ++ xs)
 
     let prf' = trans (sym $ plusAssociative 4 n k) $ cong {f = (+) 4} prf

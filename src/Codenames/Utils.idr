@@ -24,21 +24,21 @@ private plusS : (x : Nat) -> (y : Nat) -> x + (S y) = S (x + y)
 plusS Z y = Refl
 plusS (S x) y = cong (plusS x y)
 
-partitionLen : (a -> Bool) -> Vect n a -> DPair (Nat, Nat) (\(m, k) => (m + k = n, Vect m a, Vect k a))
-partitionLen p [] = ((0, 0) ** (Refl, [], []))
-partitionLen p (x :: xs) = case partitionLen p xs of
-    ((m, k) ** (prf, lefts, rights)) =>
-      if p x then
-        ((S m, k) ** (cong prf, x::lefts, rights))
-      else
-        ((m, S k) ** (trans (plusS m k) (cong prf), lefts, x::rights))
-
-partitionLemma :
-  (p : a -> Bool) -> (xs : Vect n a) ->
-  let (ys, ns) = partition p xs in fst ys + fst ns = n
-partitionLemma p [] = Refl
-partitionLemma {n = S n} p (x :: xs) with (partition p xs) proof eq
-  | ((ylen ** ys), (nlen ** ns)) with (replace (sym eq) $ partitionLemma p xs)
+partitionLen :
+  (p : a -> Bool) -> (xs : Vect len a) ->
+  let (ys, ns) = partition p xs in fst ys + fst ns = len
+partitionLen p [] = Refl
+partitionLen {len = S _} p (x :: xs) with (partition p xs) proof eq
+  | ((ylen ** ys), (nlen ** ns)) with (replace (sym eq) $ partitionLen p xs)
     | prf with (p x)
       | True = cong prf
       | False = trans (plusS ylen nlen) $ cong prf
+
+data Reveal : {b : a -> Type} -> (f : (x : a) -> b x) -> (x : a) -> (y : b x) -> Type where
+  MkReveal : {b : a -> Type} -> {f : (x : a) -> b x} -> {x : a} -> {y : b x} -> (f x = y) -> Reveal {b = b} f x y
+
+inspect : {b : a -> Type} -> (f : (x : a) -> b x) -> (x : a) -> Reveal f x (f x)
+inspect {b = b} f x = MkReveal {b = b} {f = f} {y = f x} (Refl {x = f x})
+
+applyInspect : {b : a -> Type} -> (f : (x : a) -> b x) -> (x : a) -> (y ** f x = y)
+applyInspect f x = (f x ** Refl)
