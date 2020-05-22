@@ -34,11 +34,5 @@ partitionLen {len = S _} p (x :: xs) with (partition p xs) proof eq
       | True = cong prf
       | False = trans (plusS ylen nlen) $ cong prf
 
-data Reveal : {b : a -> Type} -> (f : (x : a) -> b x) -> (x : a) -> (y : b x) -> Type where
-  MkReveal : {b : a -> Type} -> {f : (x : a) -> b x} -> {x : a} -> {y : b x} -> (f x = y) -> Reveal {b = b} f x y
-
-inspect : {b : a -> Type} -> (f : (x : a) -> b x) -> (x : a) -> Reveal f x (f x)
-inspect {b = b} f x = MkReveal {b = b} {f = f} {y = f x} (Refl {x = f x})
-
-applyInspect : {b : a -> Type} -> (f : (x : a) -> b x) -> (x : a) -> (y ** f x = y)
-applyInspect f x = (f x ** Refl)
+inspect : {b : a -> Type} -> (f : (x : a) -> b x) -> (x : a) -> (y ** f x = y)
+inspect f x = (f x ** Refl)
